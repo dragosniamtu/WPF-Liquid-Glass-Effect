@@ -35,10 +35,10 @@
         <Setter Property="Background" Value="#FFBD2E" />
         <Setter Property="BorderBrush" Value="#DCA529" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Foreground" Value="#66000000" />
+        <Setter Property="Foreground" Value="#111111" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-        <Setter Property="Tag" Value="M 3 7 L 11 7" />
+        <Setter Property="Tag" Value="M 2 5.25 L 12 5.25 Q 13.75 5.25 13.75 7 Q 13.75 8.75 12 8.75 L 2 8.75 Q 0.25 8.75 0.25 7 Q 0.25 5.25 2 5.25 Z" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -49,12 +49,10 @@
                                  StrokeThickness="{TemplateBinding BorderThickness}" />
                         <Path x:Name="Glyph"
                               Data="{TemplateBinding Tag}"
-                              Stroke="{TemplateBinding Foreground}"
-                              StrokeThickness="1.7"
                               Fill="{TemplateBinding Foreground}"
-                              Stretch="Fill"
-                              Width="8"
-                              Height="8"
+                              Stretch="Uniform"
+                              Width="9"
+                              Height="9"
                               HorizontalAlignment="Center"
                               VerticalAlignment="Center"
                               Opacity="0" />
@@ -78,16 +76,16 @@
     <Style x:Key="CloseCaptionButtonStyle" TargetType="Button" BasedOn="{StaticResource CaptionButtonStyle}">
         <Setter Property="Background" Value="#FF5F57" />
         <Setter Property="BorderBrush" Value="#E0443E" />
-        <Setter Property="Foreground" Value="#7A1818" />
-        <Setter Property="Tag" Value="M 2 2 L 12 12 M 12 2 L 2 12" />
+        <Setter Property="Foreground" Value="#111111" />
+        <Setter Property="Tag" Value="M 2.1 0 L 7 4.9 L 11.9 0 L 14 2.1 L 9.1 7 L 14 11.9 L 11.9 14 L 7 9.1 L 2.1 14 L 0 11.9 L 4.9 7 L 0 2.1 Z" />
     </Style>
 
     <Style x:Key="MaximizeCaptionButtonStyle" TargetType="Button" BasedOn="{StaticResource CaptionButtonStyle}">
         <Setter Property="Margin" Value="0" />
         <Setter Property="Background" Value="#28C840" />
         <Setter Property="BorderBrush" Value="#19AC34" />
-        <Setter Property="Foreground" Value="#0B7424" />
-        <Setter Property="Tag" Value="M 3 3 L 11 3 L 11 11 Z" />
+        <Setter Property="Foreground" Value="#111111" />
+        <Setter Property="Tag" Value="M 1 1 L 10.6 1 Q 11.4 1 10.8 1.6 L 1.6 10.8 Q 1 11.4 1 10.6 Z M 13 13 L 3.4 13 Q 2.6 13 3.2 12.4 L 12.4 3.2 Q 13 2.6 13 3.4 Z" />
     </Style>
 
     <Style x:Key="GlassyWindowStyle" TargetType="Window">

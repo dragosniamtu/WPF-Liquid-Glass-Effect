@@ -99,6 +99,7 @@ public static class GlassyWindowBehavior
         private DispatcherTimer? _backdropUpdateTimer;
         private ImageBrush? _backdropBrush;
         private bool _isCapturing;
+        private bool _isDeactivatedCapture;
         private Border? _windowFrame;
         private Border? _glassyLayer;
         private FrameworkElement? _windowClipRoot;
@@ -123,7 +124,11 @@ public static class GlassyWindowBehavior
         public void OnLoaded(object sender, RoutedEventArgs e)
         {
             CacheTemplateParts();
-            CaptureBehindWindow();
+            if (ScreenCaptureHelper.FullScreenSnapshot == null)
+            {
+                CaptureBehindWindow();
+            }
+
             SetupBackdropCapture();
             EnsureGlassyEffect();
             UpdateGlassyEffectParameters();
@@ -139,13 +144,25 @@ public static class GlassyWindowBehavior
 
         public void OnLocationChanged(object? sender, EventArgs e) => ScheduleDelayedBackdropUpdate();
 
-        public void OnActivated(object? sender, EventArgs e)
-        {
-            ScreenCaptureHelper.CaptureFullScreen();
-            ScheduleDelayedBackdropUpdate();
-        }
+        public void OnActivated(object? sender, EventArgs e) => ScheduleDelayedBackdropUpdate();
 
-        public void OnDeactivated(object? sender, EventArgs e) => CaptureBehindWindow();
+        public void OnDeactivated(object? sender, EventArgs e)
+        {
+            if (_isDeactivatedCapture)
+            {
+                return;
+            }
+
+            _isDeactivatedCapture = true;
+            try
+            {
+                CaptureBehindWindow();
+            }
+            finally
+            {
+                _isDeactivatedCapture = false;
+            }
+        }
 
         public void OnClosed(object? sender, EventArgs e) => Dispose();
 
@@ -248,7 +265,7 @@ public static class GlassyWindowBehavior
         {
             _backdropUpdateTimer ??= new DispatcherTimer(DispatcherPriority.Render)
             {
-                Interval = TimeSpan.FromMilliseconds(5)
+                Interval = TimeSpan.FromMilliseconds(1)
             };
             _backdropUpdateTimer.Tick -= OnBackdropUpdateTick;
             _backdropUpdateTimer.Tick += OnBackdropUpdateTick;
