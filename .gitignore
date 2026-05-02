@@ -8,3 +8,54 @@ obj/
 *.suo
 *.userosscache
 *.sln.docstates
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM/
+ARM64/
+
+# Visual Studio
+.vscode/
+*.VC.db
+*.VC.VC.opendb
+*.ncb
+*.opendb
+*.cachefile
+*.dbmdl
+*.jfm
+*.pdb
+*.ilk
+*.iobj
+*.ipdb
+*.aps
+
+# .NET
+TestResults/
+*.nupkg
+*.snupkg
+project.lock.json
+artifacts/
+
+# Rider/ReSharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# OS/editor noise
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig

@@ -2,13 +2,17 @@
 
 A small WPF sample that recreates an Apple Liquid Glass-inspired window surface on Windows.
 
+<video src="docs/Screen.mp4" controls muted loop playsinline width="960"></video>
+
+[Watch the demo video](docs/Screen.mp4)
+
 The demo is intentionally self-contained for a public blog repository. It pulls the idea from the `GlassyWindowStyle` in `XAMLTemplates.Net.WPF.Themes.Glass`, then copies only the pieces needed to explain the technique:
 
 - a borderless transparent WPF window template;
 - an acrylic/blur-behind composition hook;
 - a desktop screenshot helper used as the shader input;
 - a WPF `ShaderEffect` wrapper around `GlassyEffect.ps`;
-- normal, unthemed WPF controls placed inside the glass surface.
+- a lightweight demo window that leaves room to see the glass distortion clearly.
 
 ## How it works
 
@@ -18,7 +22,7 @@ The style creates three visual layers:
 
 1. `WindowFrame`, whose background is replaced at runtime with a cropped screenshot of the desktop behind the window.
 2. `GlassyLayer`, which applies `GlassyEffect` to distort that captured backdrop.
-3. A light translucent content layer that hosts your regular WPF UI.
+3. A light translucent content layer that lets the distortion remain visible.
 
 `DemoApp/Behaviors/GlassyWindowBehavior.cs` keeps the backdrop in sync when the window loads, moves, resizes, activates, or deactivates. `DemoApp/WindowEffect/AcrylicBlur.cs` asks Windows composition for acrylic blur when transparency effects are enabled.
 
