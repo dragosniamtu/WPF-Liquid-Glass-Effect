@@ -1,0 +1,95 @@
+<Window x:Class="DemoApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WPF Liquid Glass"
+        Width="920"
+        Height="620"
+        MinWidth="720"
+        MinHeight="480"
+        Style="{StaticResource GlassyWindowStyle}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0"
+                   Margin="118,0,118,0"
+                   VerticalAlignment="Center"
+                   IsHitTestVisible="False">
+            <TextBlock Text="Desktop backdrop, WPF controls"
+                       HorizontalAlignment="Center"
+                       FontSize="12"
+                       Foreground="#7A202022" />
+        </DockPanel>
+
+        <Grid Grid.Row="1" Margin="28,18,28,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.12*" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="0.88*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Padding="26"
+                    Background="#40FFFFFF"
+                    BorderBrush="#80FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                <StackPanel>
+                    <TextBlock Text="Liquid glass over your Windows desktop"
+                               TextWrapping="Wrap"
+                               FontSize="30"
+                               FontWeight="SemiBold"
+                               LineHeight="35"
+                               Foreground="#202022" />
+                    <TextBlock Margin="0,14,0,0"
+                               TextWrapping="Wrap"
+                               FontSize="14"
+                               LineHeight="21"
+                               Foreground="#CC202022"
+                               Text="The window template captures the desktop behind the window, feeds that bitmap through a PixelShader, and lets normal WPF controls stay normal inside the surface." />
+
+                    <UniformGrid Margin="0,28,0,0" Columns="2" Rows="2">
+                        <Border Margin="0,0,10,10" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock Text="Backdrop" FontWeight="SemiBold" Foreground="#202022" />
+                                <TextBlock Text="Captured with GDI" Margin="0,4,0,0" Foreground="#A0202022" />
+                            </StackPanel>
+                        </Border>
+                        <Border Margin="10,0,0,10" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock Text="Shader" FontWeight="SemiBold" Foreground="#202022" />
+                                <TextBlock Text="Lens distortion" Margin="0,4,0,0" Foreground="#A0202022" />
+                            </StackPanel>
+                        </Border>
+                        <Border Margin="0,10,10,0" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock Text="Acrylic" FontWeight="SemiBold" Foreground="#202022" />
+                                <TextBlock Text="Windows composition" Margin="0,4,0,0" Foreground="#A0202022" />
+                            </StackPanel>
+                        </Border>
+                        <Border Margin="10,10,0,0" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock Text="Controls" FontWeight="SemiBold" Foreground="#202022" />
+                                <TextBlock Text="Default WPF theme" Margin="0,4,0,0" Foreground="#A0202022" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Background="#18FFFFFF"
+                    BorderBrush="#40FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="8" />
+        </Grid>
+
+        <StatusBar Grid.Row="2" Background="#38FFFFFF">
+            <StatusBarItem Content="Drag anywhere on the glass frame to move the window." />
+            <Separator />
+            <StatusBarItem Content="Resize from the edges." />
+        </StatusBar>
+    </Grid>
+</Window>

@@ -1,0 +1,10 @@
+.vs/
+.dotnet/
+bin/
+obj/
+
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
