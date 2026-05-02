@@ -2,7 +2,13 @@
 
 A small WPF sample that recreates an Apple Liquid Glass-inspired window surface on Windows.
 
-<video src="docs/Screen.mp4" controls muted loop playsinline width="960"></video>
+<p align="center">
+  <img src="docs/demo.gif" alt="WPF Liquid Glass Effect demo" width="720" />
+</p>
+
+<p align="center">
+  <img src="docs/Screenshot.png" alt="WPF Liquid Glass Effect screenshot" width="720" />
+</p>
 
 [Watch the demo video](docs/Screen.mp4)
 
