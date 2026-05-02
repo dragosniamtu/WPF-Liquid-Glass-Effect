@@ -12,6 +12,16 @@ A small WPF sample that recreates an Apple Liquid Glass-inspired window surface 
 
 [Watch the demo video](docs/Screen.mp4)
 
+## Update: Feedback Hub suggestion
+
+After sharing the prototype on X, Microsoft support suggested submitting the idea through Feedback Hub.
+
+The goal is not to recreate old Aero Glass exactly, but to explore a modern native Windows material for stronger glass/refraction effects.
+
+Feedback Hub title:
+
+> "Bring back a modern Aero Glass / Liquid Glass material for Windows 11"
+
 The demo is intentionally self-contained for a public blog repository. It pulls the idea from the `GlassyWindowStyle` in `XAMLTemplates.Net.WPF.Themes.Glass`, then copies only the pieces needed to explain the technique:
 
 - a borderless transparent WPF window template;
