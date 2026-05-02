@@ -7,10 +7,9 @@ Apple's Liquid Glass effect is a useful design prompt for desktop UI: it is not 
 This article shows a WPF approximation using public Windows APIs:
 
 - a borderless transparent window;
-- Windows acrylic blur;
 - a screenshot of the desktop behind the window;
 - a PixelShader that distorts the captured backdrop;
-- regular WPF controls placed above the glass.
+- a lightweight WPF surface that leaves room to see the distortion.
 
 ## Attribution
 
@@ -44,9 +43,9 @@ The trick is to hide the window briefly while capturing so the window does not p
 
 The behavior updates the shader's texture size, glass center, glass size, and blur intensity whenever the window changes.
 
-## Keeping Controls Unthemed
+## Keeping The Surface Focused
 
-The sample only styles the outer window. The content uses ordinary WPF controls, so the article can clearly show that the glass effect is a host surface and not a full control theme.
+The sample only styles the outer window. The content stays lightweight so the article can clearly show that the glass effect is a host surface and not a full control theme.
 
 ## Caveats
 

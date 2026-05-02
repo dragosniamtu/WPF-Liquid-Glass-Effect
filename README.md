@@ -15,7 +15,6 @@ A small WPF sample that recreates an Apple Liquid Glass-inspired window surface 
 The demo is intentionally self-contained for a public blog repository. It pulls the idea from the `GlassyWindowStyle` in `XAMLTemplates.Net.WPF.Themes.Glass`, then copies only the pieces needed to explain the technique:
 
 - a borderless transparent WPF window template;
-- an acrylic/blur-behind composition hook;
 - a desktop screenshot helper used as the shader input;
 - a WPF `ShaderEffect` wrapper around `GlassyEffect.ps`;
 - a lightweight demo window that leaves room to see the glass distortion clearly.
@@ -30,7 +29,7 @@ The style creates three visual layers:
 2. `GlassyLayer`, which applies `GlassyEffect` to distort that captured backdrop.
 3. A light translucent content layer that lets the distortion remain visible.
 
-`DemoApp/Behaviors/GlassyWindowBehavior.cs` keeps the backdrop in sync when the window loads, moves, resizes, activates, or deactivates. `DemoApp/WindowEffect/AcrylicBlur.cs` asks Windows composition for acrylic blur when transparency effects are enabled.
+`DemoApp/Behaviors/GlassyWindowBehavior.cs` keeps the cached desktop backdrop in sync when the window loads, moves, resizes, activates, or deactivates.
 
 ## Run
 
@@ -46,7 +45,7 @@ dotnet build ".\02 WPF XAML Liquid Glass.slnx"
 
 ## Notes for the article
 
-This sample is not using any Apple private APIs. It is a WPF/Win32 approximation that combines desktop capture, Windows composition, and a pixel shader.
+This sample is not using any Apple private APIs. It is a WPF/Win32 approximation that combines desktop capture and a pixel shader.
 
 The shader approach was inspired by AmirHossein Aghajari's Medium article, "Liquid Glass: iOS Effect Explanation" published on November 24, 2025: https://medium.com/@aghajari/liquid-glass-ios-effect-explanation-dabadd6414ae
 
