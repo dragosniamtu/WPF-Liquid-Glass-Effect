@@ -11,7 +11,9 @@ namespace DemoApp.Commands;
 
 public static class WindowCommands
 {
+    private const int WmNcLeftButtonDown = 0x00A1;
     private const int WmSysCommand = 0x0112;
+    private const int HtCaption = 2;
     private const int ScSize = 0xF000;
     private const int WmszLeft = 1;
     private const int WmszRight = 2;
@@ -96,7 +98,21 @@ public static class WindowCommands
                 return;
             }
 
-            Window.GetWindow(border)?.DragMove();
+            var window = Window.GetWindow(border);
+            if (window == null)
+            {
+                return;
+            }
+
+            var hwnd = new WindowInteropHelper(window).Handle;
+            if (hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            _ = ReleaseCapture();
+            _ = SendMessage(hwnd, WmNcLeftButtonDown, (IntPtr)HtCaption, IntPtr.Zero);
+            args.Handled = true;
         };
     }
 
@@ -224,4 +240,7 @@ public static class WindowCommands
 
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool ReleaseCapture();
 }

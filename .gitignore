@@ -59,3 +59,7 @@ Desktop.ini
 *.temp
 *.bak
 *.orig
+
+# Media captures
+*.mp4
+!docs/Screen.mp4

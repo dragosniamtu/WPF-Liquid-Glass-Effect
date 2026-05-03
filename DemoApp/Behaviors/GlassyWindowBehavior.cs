@@ -103,6 +103,8 @@ public static class GlassyWindowBehavior
         private Border? _windowFrame;
         private Border? _glassyLayer;
         private FrameworkElement? _windowClipRoot;
+        private RectangleGeometry? _windowFrameClip;
+        private RectangleGeometry? _windowClipRootClip;
         private GlassyEffect? _glassyEffect;
 
         public GlassyWindowState(Window window)
@@ -240,11 +242,11 @@ public static class GlassyWindowBehavior
                 return;
             }
 
-            ApplyRectangularClip(_windowFrame);
-            ApplyRectangularClip(_windowClipRoot);
+            ApplyRectangularClip(_windowFrame, ref _windowFrameClip);
+            ApplyRectangularClip(_windowClipRoot, ref _windowClipRootClip);
         }
 
-        private static void ApplyRectangularClip(FrameworkElement? element)
+        private static void ApplyRectangularClip(FrameworkElement? element, ref RectangleGeometry? clip)
         {
             if (element == null)
             {
@@ -258,20 +260,30 @@ public static class GlassyWindowBehavior
                 return;
             }
 
-            element.Clip = new RectangleGeometry(new Rect(0, 0, width, height));
+            var rect = new Rect(0, 0, width, height);
+            if (clip == null)
+            {
+                clip = new RectangleGeometry(rect);
+                element.Clip = clip;
+                return;
+            }
+
+            clip.Rect = rect;
         }
 
         private void ScheduleDelayedBackdropUpdate()
         {
             _backdropUpdateTimer ??= new DispatcherTimer(DispatcherPriority.Render)
             {
-                Interval = TimeSpan.FromMilliseconds(1)
+                Interval = TimeSpan.FromMilliseconds(16)
             };
             _backdropUpdateTimer.Tick -= OnBackdropUpdateTick;
             _backdropUpdateTimer.Tick += OnBackdropUpdateTick;
 
-            _backdropUpdateTimer.Stop();
-            _backdropUpdateTimer.Start();
+            if (!_backdropUpdateTimer.IsEnabled)
+            {
+                _backdropUpdateTimer.Start();
+            }
         }
 
         private void OnBackdropUpdateTick(object? sender, EventArgs e)
@@ -360,9 +372,13 @@ public static class GlassyWindowBehavior
                 return;
             }
 
-            var crop = new CroppedBitmap(snapshot, new Int32Rect(x, y, width, height));
-            crop.Freeze();
-            _backdropBrush.ImageSource = crop;
+            if (!ReferenceEquals(_backdropBrush.ImageSource, snapshot))
+            {
+                _backdropBrush.ImageSource = snapshot;
+                _backdropBrush.ViewboxUnits = BrushMappingMode.Absolute;
+            }
+
+            _backdropBrush.Viewbox = new Rect(x, y, width, height);
         }
 
         private void SetBlurBehind(bool enabled)
