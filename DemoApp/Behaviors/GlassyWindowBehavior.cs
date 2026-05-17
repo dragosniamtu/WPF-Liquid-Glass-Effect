@@ -96,14 +96,13 @@ public static class GlassyWindowBehavior
 
     private sealed class GlassyWindowState : IDisposable
     {
-        private const int CaptureIntervalMs = 33; // ~30 FPS
+        private const int CaptureIntervalMs = 16; // ~60 FPS
         private readonly Window _window;
         private DispatcherTimer? _backdropUpdateTimer;
         private ImageBrush? _backdropBrush;
         private DateTime _lastCapture = DateTime.MinValue;
         private bool _isCapturing;
         private bool _isAffinitySet;
-        private bool _isDeactivatedCapture;
         private Border? _windowFrame;
         private Border? _glassyLayer;
         private FrameworkElement? _windowClipRoot;
@@ -151,20 +150,6 @@ public static class GlassyWindowBehavior
 
         public void OnDeactivated(object? sender, EventArgs e)
         {
-            if (_isDeactivatedCapture)
-            {
-                return;
-            }
-
-            _isDeactivatedCapture = true;
-            try
-            {
-                CaptureBehindWindow();
-            }
-            finally
-            {
-                _isDeactivatedCapture = false;
-            }
         }
 
         public void OnClosed(object? sender, EventArgs e) => Dispose();
@@ -274,9 +259,16 @@ public static class GlassyWindowBehavior
 
         private void ScheduleDelayedBackdropUpdate()
         {
+            if (_isAffinitySet)
+            {
+                // When affinity is set, we can capture smoothly without flickering.
+                CaptureBehindWindow();
+                return;
+            }
+
             _backdropUpdateTimer ??= new DispatcherTimer(DispatcherPriority.Render)
             {
-                Interval = TimeSpan.FromMilliseconds(16)
+                Interval = TimeSpan.FromMilliseconds(CaptureIntervalMs)
             };
             _backdropUpdateTimer.Tick -= OnBackdropUpdateTick;
             _backdropUpdateTimer.Tick += OnBackdropUpdateTick;
