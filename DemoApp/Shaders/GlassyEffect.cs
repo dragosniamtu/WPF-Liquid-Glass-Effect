@@ -40,10 +40,12 @@ public sealed class GlassyEffect : ShaderEffect
 
     public GlassyEffect()
     {
-        PixelShader = new PixelShader
+        var pixelShader = new PixelShader
         {
             UriSource = new Uri("pack://application:,,,/DemoApp;component/Shaders/GlassyEffect.ps", UriKind.Absolute)
         };
+        pixelShader.Freeze();
+        PixelShader = pixelShader;
 
         UpdateShaderValue(InputProperty);
         UpdateShaderValue(TextureSizeProperty);
