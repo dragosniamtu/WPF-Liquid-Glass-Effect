@@ -192,6 +192,8 @@ public static class GlassyWindowBehavior
                 AlignmentY = AlignmentY.Top
             };
 
+            RenderOptions.SetBitmapScalingMode(_backdropBrush, BitmapScalingMode.Linear);
+
             _windowFrame.Background = _backdropBrush;
             CaptureBehindWindow();
         }
@@ -218,7 +220,7 @@ public static class GlassyWindowBehavior
             _glassyEffect.TextureSize = new Point(width, height);
             _glassyEffect.GlassCenter = new Point(width * 0.5, height * 0.5);
             _glassyEffect.GlassSize = new Point(width, height);
-            _glassyEffect.BlurIntensity = 0.2f;
+            _glassyEffect.BlurIntensity = 0.45f;
         }
 
         private void UpdateWindowClip()

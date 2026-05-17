@@ -13,7 +13,7 @@ public static class ScreenCaptureHelper
     private const int SmYVirtualScreen = 77;
     private const int SmCxVirtualScreen = 78;
     private const int SmCyVirtualScreen = 79;
-    private const int ColorOnColor = 3;
+    private const int Halftone = 4;
 
     public static BitmapSource? FullScreenSnapshot { get; private set; }
     public static int VirtualScreenX { get; private set; }
@@ -78,7 +78,8 @@ public static class ScreenCaptureHelper
             }
             else
             {
-                _ = SetStretchBltMode(memDc, ColorOnColor);
+                _ = SetStretchBltMode(memDc, Halftone);
+                _ = SetBrushOrgEx(memDc, 0, 0, IntPtr.Zero);
                 _ = StretchBlt(memDc, 0, 0, scaledWidth, scaledHeight, screenDc, x, y, width, height, SrcCopy);
             }
 
@@ -141,6 +142,9 @@ public static class ScreenCaptureHelper
 
     [DllImport("gdi32.dll")]
     private static extern int SetStretchBltMode(IntPtr hdc, int mode);
+
+    [DllImport("gdi32.dll")]
+    private static extern bool SetBrushOrgEx(IntPtr hdc, int x, int y, IntPtr lppt);
 
     [DllImport("gdi32.dll")]
     private static extern bool DeleteObject(IntPtr hObject);
