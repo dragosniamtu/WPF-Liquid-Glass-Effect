@@ -1,6 +1,7 @@
 using DemoApp.Shaders;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -95,10 +96,13 @@ public static class GlassyWindowBehavior
 
     private sealed class GlassyWindowState : IDisposable
     {
+        private const int CaptureIntervalMs = 33; // ~30 FPS
         private readonly Window _window;
         private DispatcherTimer? _backdropUpdateTimer;
         private ImageBrush? _backdropBrush;
+        private DateTime _lastCapture = DateTime.MinValue;
         private bool _isCapturing;
+        private bool _isAffinitySet;
         private bool _isDeactivatedCapture;
         private Border? _windowFrame;
         private Border? _glassyLayer;
@@ -116,6 +120,7 @@ public static class GlassyWindowBehavior
         {
             _window.ApplyTemplate();
             CacheTemplateParts();
+            TrySetExclusionAffinity();
             SetBlurBehind(true);
             SetupBackdropCapture();
             EnsureGlassyEffect();
@@ -126,11 +131,7 @@ public static class GlassyWindowBehavior
         public void OnLoaded(object sender, RoutedEventArgs e)
         {
             CacheTemplateParts();
-            if (ScreenCaptureHelper.FullScreenSnapshot == null)
-            {
-                CaptureBehindWindow();
-            }
-
+            TrySetExclusionAffinity();
             SetupBackdropCapture();
             EnsureGlassyEffect();
             UpdateGlassyEffectParameters();
@@ -207,7 +208,7 @@ public static class GlassyWindowBehavior
             };
 
             _windowFrame.Background = _backdropBrush;
-            UpdateBackdropCapture();
+            CaptureBehindWindow();
         }
 
         private void EnsureGlassyEffect()
@@ -289,96 +290,107 @@ public static class GlassyWindowBehavior
         private void OnBackdropUpdateTick(object? sender, EventArgs e)
         {
             _backdropUpdateTimer?.Stop();
-            UpdateBackdropCapture();
+            CaptureBehindWindow();
         }
 
         private void CaptureBehindWindow()
         {
-            if (_isCapturing)
+            if (_isCapturing || (DateTime.Now - _lastCapture).TotalMilliseconds < CaptureIntervalMs)
             {
                 return;
             }
 
             _isCapturing = true;
+            _lastCapture = DateTime.Now;
 
             try
             {
                 var hwnd = new WindowInteropHelper(_window).Handle;
-                if (hwnd != IntPtr.Zero)
+                if (hwnd == IntPtr.Zero)
+                {
+                    _isCapturing = false;
+                    return;
+                }
+
+                var topLeft = _window.PointToScreen(new Point(0, 0));
+                var bottomRight = _window.PointToScreen(new Point(_window.ActualWidth, _window.ActualHeight));
+
+                bool needsHide = !_isAffinitySet;
+                if (needsHide)
                 {
                     _ = ShowWindow(hwnd, SwHide);
                     _window.Dispatcher.Invoke(DispatcherPriority.Render, new Action(() => { }));
                 }
+                var width = (int)Math.Max(1, Math.Round(bottomRight.X - topLeft.X));
+                var height = (int)Math.Max(1, Math.Round(bottomRight.Y - topLeft.Y));
 
-                ScreenCaptureHelper.CaptureFullScreen();
-            }
-            finally
-            {
-                var hwnd = new WindowInteropHelper(_window).Handle;
-                if (hwnd != IntPtr.Zero)
+                if (width <= 0 || height <= 0)
                 {
-                    _ = ShowWindow(hwnd, SwShowNoActivate);
-                    _window.Dispatcher.Invoke(DispatcherPriority.Render, new Action(() => { }));
+                    _isCapturing = false;
+                    return;
                 }
 
+                Task.Run(() => ScreenCaptureHelper.CaptureRegion((int)topLeft.X, (int)topLeft.Y, width, height, 0.75))
+                    .ContinueWith(t =>
+                    {
+                        _window.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            try
+                            {
+                                if (needsHide)
+                                {
+                                    _ = ShowWindow(hwnd, SwShowNoActivate);
+                                    _window.Dispatcher.Invoke(DispatcherPriority.Render, new Action(() => { }));
+                                }
+
+                                if (t.Status == TaskStatus.RanToCompletion)
+                                {
+                                    var snapshot = t.Result;
+                                    if (snapshot != null && _backdropBrush != null)
+                                    {
+                                        _backdropBrush.ImageSource = snapshot;
+                                        _backdropBrush.Viewbox = new Rect(0, 0, snapshot.PixelWidth, snapshot.PixelHeight);
+                                        _backdropBrush.ViewboxUnits = BrushMappingMode.Absolute;
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                                // Ignore errors in continuation
+                            }
+                            finally
+                            {
+                                _isCapturing = false;
+                            }
+                        }));
+                    });
+            }
+            catch
+            {
                 _isCapturing = false;
             }
         }
 
-        private void UpdateBackdropCapture()
+        private void TrySetExclusionAffinity()
         {
-            if (_backdropBrush == null || _window.WindowState == WindowState.Minimized)
+            try
             {
-                return;
-            }
+                var hwnd = new WindowInteropHelper(_window).Handle;
+                if (hwnd == IntPtr.Zero)
+                {
+                    return;
+                }
 
-            var snapshot = ScreenCaptureHelper.FullScreenSnapshot;
-            if (snapshot == null)
+                // WDA_EXCLUDEFROMCAPTURE = 0x00000011 (available since Windows 10 2004)
+                if (SetWindowDisplayAffinity(hwnd, 0x00000011))
+                {
+                    _isAffinitySet = true;
+                }
+            }
+            catch
             {
-                return;
+                // API might not be available or fails
             }
-
-            var topLeft = _window.PointToScreen(new Point(0, 0));
-            var bottomRight = _window.PointToScreen(new Point(_window.ActualWidth, _window.ActualHeight));
-            var x = (int)Math.Round(topLeft.X - ScreenCaptureHelper.VirtualScreenX);
-            var y = (int)Math.Round(topLeft.Y - ScreenCaptureHelper.VirtualScreenY);
-            var width = Math.Max(1, (int)Math.Round(bottomRight.X - topLeft.X));
-            var height = Math.Max(1, (int)Math.Round(bottomRight.Y - topLeft.Y));
-
-            if (x < 0)
-            {
-                width += x;
-                x = 0;
-            }
-
-            if (y < 0)
-            {
-                height += y;
-                y = 0;
-            }
-
-            if (x + width > snapshot.PixelWidth)
-            {
-                width = snapshot.PixelWidth - x;
-            }
-
-            if (y + height > snapshot.PixelHeight)
-            {
-                height = snapshot.PixelHeight - y;
-            }
-
-            if (width <= 0 || height <= 0)
-            {
-                return;
-            }
-
-            if (!ReferenceEquals(_backdropBrush.ImageSource, snapshot))
-            {
-                _backdropBrush.ImageSource = snapshot;
-                _backdropBrush.ViewboxUnits = BrushMappingMode.Absolute;
-            }
-
-            _backdropBrush.Viewbox = new Rect(x, y, width, height);
         }
 
         private void SetBlurBehind(bool enabled)
@@ -423,6 +435,9 @@ public static class GlassyWindowBehavior
 
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint affinity);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct DwmBlurBehind
