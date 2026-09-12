@@ -1,23 +1,12 @@
-<glass:PrismGlassWindow
-    x:Class="DemoApp.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:glass="clr-namespace:Prism.Glass.Wpf;assembly=Prism.Glass.Wpf"
-    Title="WPF Liquid Glass"
-    Width="720"
-    Height="480"
-    MinWidth="360"
-    MinHeight="240"
-    Preset="ClearGlass"
-    BlurRadius="18"
-    RefractionAmount="0.80"
-    ChromaticEdge="0.02"
-    Saturation="1.12"
-    Tint="#28FFFFFF"
-    CornerRadius="0"
-    BorderIntensity="0.55"
-    NoiseAmount="0.01"
-    Style="{StaticResource GlassyWindowStyle}">
+<Window x:Class="DemoApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WPF Liquid Glass"
+        Width="720"
+        Height="480"
+        MinWidth="360"
+        MinHeight="240"
+        Style="{StaticResource GlassyWindowStyle}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="44" />
@@ -49,7 +38,7 @@
                         <Border Margin="0,0,10,10" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
                             <StackPanel>
                                 <TextBlock Text="Backdrop" FontWeight="SemiBold" Foreground="#202022" />
-                                <TextBlock Text="GPU desktop capture" Margin="0,4,0,0" Foreground="#A0202022" />
+                                <TextBlock Text="Captured with GDI" Margin="0,4,0,0" Foreground="#A0202022" />
                             </StackPanel>
                         </Border>
                         <Border Margin="10,0,0,10" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
@@ -61,7 +50,7 @@
                         <Border Margin="0,10,10,0" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
                             <StackPanel>
                                 <TextBlock Text="Refresh" FontWeight="SemiBold" Foreground="#202022" />
-                                <TextBlock Text="Live Prism Glass" Margin="0,4,0,0" Foreground="#A0202022" />
+                                <TextBlock Text="Cached backdrop" Margin="0,4,0,0" Foreground="#A0202022" />
                             </StackPanel>
                         </Border>
                         <Border Margin="10,10,0,0" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
@@ -87,4 +76,4 @@
             <StatusBarItem Content="Resize from the edges." />
         </StatusBar>
     </Grid>
-</glass:PrismGlassWindow>
+</Window>
