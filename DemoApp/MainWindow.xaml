@@ -1,79 +1,203 @@
 <Window x:Class="DemoApp.MainWindow"
+        x:Name="GlassDemo"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WPF Liquid Glass"
-        Width="720"
-        Height="480"
-        MinWidth="360"
-        MinHeight="240"
-        Style="{StaticResource GlassyWindowStyle}">
-    <Grid>
+        xmlns:fx="clr-namespace:XamlTemplates.FX.Wpf;assembly=XamlTemplates.FX.Wpf"
+        xmlns:local="clr-namespace:DemoApp"
+        Title="WPF Liquid Glass — External GLSL with XamlTemplates.FX"
+        Width="900" Height="560" MinWidth="720" MinHeight="440"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" AllowsTransparency="True" ResizeMode="CanResize"
+        Background="Transparent"
+        fx:Glass.IsEnabled="True"
+        fx:Glass.FallbackBrush="#FFE3E8ED">
+    <!-- Match the transparent, borderless host used by the SDK demo.
+         FX replaces the initial background with its captured/shaded image;
+         transparent pixels remain transparent rather than becoming opaque. -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="42" ResizeBorderThickness="6"
+                      GlassFrameThickness="0" CornerRadius="0"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <local:ShaderTuningModel x:Key="ShaderTuning" />
+        <BooleanToVisibilityConverter x:Key="BooleanVisibility" />
+        <DataTemplate x:Key="NumericSettingTemplate" DataType="{x:Type local:NumericSetting}">
+            <StackPanel Margin="0,0,0,14">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding DisplayValue}"
+                               Margin="8,0,0,0" FontFamily="Consolas" />
+                    <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                </DockPanel>
+                <Slider Margin="0,6,0,0" Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
+                        SmallChange="{Binding Step}" LargeChange="{Binding Step}" TickFrequency="{Binding Step}"
+                        IsSnapToTickEnabled="True" Value="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        AutomationProperties.Name="{Binding Label}" ToolTip="{Binding UniformName}" />
+            </StackPanel>
+        </DataTemplate>
+        <Style x:Key="ParameterHeading" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,12,0,12" />
+        </Style>
+        <Style x:Key="ResetButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#FF172432" />
+            <Setter Property="Background" Value="#FFF0F4F8" />
+            <Setter Property="BorderBrush" Value="#FF73879B" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="5" Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFD5E3F1" />
+                                <Setter Property="Foreground" Value="#FF122438" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FFAEC7DE" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="#FF0759B0" />
+                                <Setter Property="BorderThickness" Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CaptionButton" TargetType="Button">
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Foreground" Value="#202022" />
+            <Setter Property="Background" Value="#70FFFFFF" />
+            <Setter Property="BorderBrush" Value="#80FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFE2E8EE" />
+                                <Setter Property="Foreground" Value="#FF101820" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FFB8C6D2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <fx:Glass.Effect>
+        <fx:GlslShaderEffect Source="Shaders/LiquidGlassSample.glsl"
+                             ReloadOnChange="True">
+            <!-- Bind every custom uniform explicitly; @fx comments are not runtime defaults. -->
+            <fx:GlslParameter Name="cornerRadius" UniformType="Float" Value="{Binding CornerRadius.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="refractionStrength" UniformType="Float" Value="{Binding RefractionStrength.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="lensDisplacement" UniformType="Float" Value="{Binding LensDisplacement.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="refractionWidth" UniformType="Float" Value="{Binding RefractionWidth.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="blurRadius" UniformType="Float" Value="{Binding BlurRadius.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="chromaticAberration" UniformType="Float" Value="{Binding ChromaticAberration.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="brightness" UniformType="Float" Value="{Binding Brightness.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="edgeHighlight" UniformType="Float" Value="{Binding EdgeHighlight.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="saturation" UniformType="Float" Value="{Binding Saturation.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="tintColor" UniformType="Float4" Value="{Binding TintColor, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+            <fx:GlslParameter Name="tintStrength" UniformType="Float" Value="{Binding TintStrength.Value, Source={StaticResource ShaderTuning}, Mode=OneWay}" />
+        </fx:GlslShaderEffect>
+    </fx:Glass.Effect>
+
+    <Grid Background="Transparent" TextElement.Foreground="#202022">
         <Grid.RowDefinitions>
-            <RowDefinition Height="44" />
+            <RowDefinition Height="42" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="1" Margin="28,18,28,18">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.12*" />
-                <ColumnDefinition Width="28" />
-                <ColumnDefinition Width="0.88*" />
-            </Grid.ColumnDefinitions>
-
-            <Border Padding="26"
-                    Background="#40FFFFFF"
-                    BorderBrush="#80FFFFFF"
-                    BorderThickness="1"
-                    CornerRadius="8">
-                <StackPanel>
-                    <TextBlock Text="Liquid glass over your Windows desktop"
-                               TextWrapping="Wrap"
-                               FontSize="30"
-                               FontWeight="SemiBold"
-                               LineHeight="35"
-                               Foreground="#202022" />
-
-                    <UniformGrid Margin="0,28,0,0" Columns="2" Rows="2">
-                        <Border Margin="0,0,10,10" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
-                            <StackPanel>
-                                <TextBlock Text="Backdrop" FontWeight="SemiBold" Foreground="#202022" />
-                                <TextBlock Text="Captured with GDI" Margin="0,4,0,0" Foreground="#A0202022" />
-                            </StackPanel>
-                        </Border>
-                        <Border Margin="10,0,0,10" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
-                            <StackPanel>
-                                <TextBlock Text="Shader" FontWeight="SemiBold" Foreground="#202022" />
-                                <TextBlock Text="Lens distortion" Margin="0,4,0,0" Foreground="#A0202022" />
-                            </StackPanel>
-                        </Border>
-                        <Border Margin="0,10,10,0" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
-                            <StackPanel>
-                                <TextBlock Text="Refresh" FontWeight="SemiBold" Foreground="#202022" />
-                                <TextBlock Text="Cached backdrop" Margin="0,4,0,0" Foreground="#A0202022" />
-                            </StackPanel>
-                        </Border>
-                        <Border Margin="10,10,0,0" Padding="14" Background="#38FFFFFF" BorderBrush="#70FFFFFF" BorderThickness="1" CornerRadius="6">
-                            <StackPanel>
-                                <TextBlock Text="Controls" FontWeight="SemiBold" Foreground="#202022" />
-                                <TextBlock Text="Default WPF theme" Margin="0,4,0,0" Foreground="#A0202022" />
-                            </StackPanel>
-                        </Border>
-                    </UniformGrid>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="2"
-                    Background="#18FFFFFF"
-                    BorderBrush="#40FFFFFF"
-                    BorderThickness="1"
-                    CornerRadius="8" />
+        <Grid Margin="12,6">
+            <TextBlock Text="WPF Liquid Glass — External GLSL" FontWeight="SemiBold"
+                       VerticalAlignment="Center" IsHitTestVisible="False" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource CaptionButton}" Content="—" Click="MinimizeWindow"
+                        ToolTip="Minimize" AutomationProperties.Name="Minimize window" />
+                <Button Style="{StaticResource CaptionButton}" Content="□" Click="ToggleMaximizeWindow"
+                        Margin="6,0" ToolTip="Maximize / Restore" AutomationProperties.Name="Maximize or restore window" />
+                <Button Style="{StaticResource CaptionButton}" Content="×" Click="CloseWindow"
+                        ToolTip="Close" AutomationProperties.Name="Close window" />
+            </StackPanel>
         </Grid>
 
-        <StatusBar Grid.Row="2" Background="#38FFFFFF">
-            <StatusBarItem Content="Drag anywhere on the glass frame to move the window." />
-            <Separator />
-            <StatusBarItem Content="Resize from the edges." />
-        </StatusBar>
+        <Border Grid.Row="1" Width="320" HorizontalAlignment="Right" Margin="20,14,20,20"
+                Padding="18" Background="#F2F4F7FA" BorderBrush="#FF95A8B8" BorderThickness="1"
+                CornerRadius="8" DataContext="{StaticResource ShaderTuning}" TextElement.Foreground="#FF202022">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          PanningMode="VerticalOnly">
+                <StackPanel Margin="0,0,8,0">
+                    <TextBlock Text="Shader parameters" FontSize="18" FontWeight="SemiBold" />
+                    <TextBlock Text="Adjust the glass live." Margin="0,6,0,12" TextWrapping="Wrap" />
+                    <Button Content="_Reset defaults" Command="{Binding ResetCommand}"
+                            Style="{StaticResource ResetButton}" AutomationProperties.Name="Reset shader defaults" />
+                    <TextBlock Text="Geometry" Style="{StaticResource ParameterHeading}" />
+                    <ItemsControl ItemsSource="{Binding GeometryControls}" ItemTemplate="{StaticResource NumericSettingTemplate}" />
+                    <TextBlock Text="Optics" Style="{StaticResource ParameterHeading}" />
+                    <ItemsControl ItemsSource="{Binding OpticsControls}" ItemTemplate="{StaticResource NumericSettingTemplate}" />
+                    <TextBlock Text="Color" Style="{StaticResource ParameterHeading}" />
+                    <ItemsControl ItemsSource="{Binding ColorControls}" ItemTemplate="{StaticResource NumericSettingTemplate}" />
+                    <Label Content="Tint color (#RRGGBB)" Target="{Binding ElementName=TintInput}"
+                           Padding="0" Margin="0,0,0,6" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="42" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="TintInput" Text="{Binding TintHex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="7,5" Background="White" Foreground="#FF202022" BorderBrush="#FF73879B"
+                                 FontFamily="Consolas" AutomationProperties.Name="Tint color hexadecimal RGB"
+                                 AutomationProperties.HelpText="Use #RRGGBB. Invalid text keeps the last valid color." />
+                        <Border Grid.Column="1" Margin="8,0,0,0" BorderBrush="#FF73879B" BorderThickness="1"
+                                CornerRadius="3" ToolTip="Last valid tint color">
+                            <Border.Background><SolidColorBrush Color="{Binding TintColor}" /></Border.Background>
+                        </Border>
+                    </Grid>
+                    <TextBlock Text="{Binding TintError}" TextWrapping="Wrap" Foreground="#FF8B1E13" Margin="0,6,0,0"
+                               Visibility="{Binding HasTintError, Converter={StaticResource BooleanVisibility}}"
+                               AutomationProperties.LiveSetting="Polite" />
+                    <TextBlock Text="Raise tint strength above zero to see the tint." TextWrapping="Wrap"
+                               Margin="0,8,0,0" FontSize="11" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <Border Grid.Row="2" Background="#BFFFFFFF" Padding="12,8">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap">
+                    <Run Text="Move the title bar or resize the edges.  FX state: " />
+                    <Run Text="{Binding Path=(fx:Glass.RuntimeState), ElementName=GlassDemo, Mode=OneWay}" />
+                    <Run Text="  | FPS: " />
+                    <Run Text="{Binding Path=(fx:Glass.Diagnostics).CurrentFps, ElementName=GlassDemo, Mode=OneWay}" />
+                    <Run Text="  | Capture fallback: " />
+                    <Run Text="{Binding Path=(fx:Glass.Diagnostics).UsingFallback, ElementName=GlassDemo, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Text="{Binding Path=(fx:Glass.LastError).Message, ElementName=GlassDemo, Mode=OneWay, TargetNullValue=''}"
+                           TextWrapping="Wrap" Foreground="#8B1E13" />
+            </StackPanel>
+        </Border>
+        <Border Grid.RowSpan="3" BorderBrush="#FF95A8B8" BorderThickness="1"
+                IsHitTestVisible="False" />
     </Grid>
 </Window>

@@ -8,4 +8,19 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
+
+    // Window chrome only; capture and shader rendering remain inside the SDK.
+    private void MinimizeWindow(object sender, RoutedEventArgs e) =>
+        SystemCommands.MinimizeWindow(this);
+
+    private void ToggleMaximizeWindow(object sender, RoutedEventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+            SystemCommands.RestoreWindow(this);
+        else
+            SystemCommands.MaximizeWindow(this);
+    }
+
+    private void CloseWindow(object sender, RoutedEventArgs e) =>
+        SystemCommands.CloseWindow(this);
 }

@@ -1,54 +1,118 @@
-# Bringing Apple's Liquid Glass Feeling to WPF on Windows
+# Liquid Glass on WPF: loading an external GLSL shader with XamlTemplates.FX
 
-## Hook
+## Update to the original article
 
-Apple's Liquid Glass effect is a useful design prompt for desktop UI: it is not just opacity and blur, it is a surface that bends what sits behind it.
+The original Blog/02 prototype demonstrated a borderless WPF window, a GDI
+desktop screenshot helper, and a compiled WPF pixel shader. This revision keeps
+the tutorial-inspired shader as a separate GLSL asset but replaces the local
+capture/rendering code with the public **XamlTemplates.FX.Wpf 1.0.0-preview.3**
+NuGet package.
 
-This article shows a WPF approximation using public Windows APIs:
+The earlier implementation is available in Git history at `ded012c`. Existing
+screenshots and video show that standalone prototype; they are not new package
+integration screenshots.
 
-- a borderless transparent window;
-- a screenshot of the desktop behind the window;
-- a PixelShader that distorts the captured backdrop;
-- a lightweight WPF surface that leaves room to see the distortion.
+## Credit the original tutorial
 
-## Attribution
+The shader direction comes from AmirHossein Aghajari's
+[Liquid Glass: iOS Effect Explanation](https://medium.com/@aghajari/liquid-glass-ios-effect-explanation-dabadd6414ae),
+published November 24, 2025. Mention it prominently when describing the optics.
 
-The shader direction was inspired by AmirHossein Aghajari's Medium article, "Liquid Glass: iOS Effect Explanation", published on November 24, 2025:
+We adapted the sample to the FX package's shader-input contract and exposed
+parameters. The original tutorial did not use this package. Attribution does
+not establish redistribution rights; link to [the notices](../THIRD-PARTY-NOTICES.md).
 
-https://medium.com/@aghajari/liquid-glass-ios-effect-explanation-dabadd6414ae
+## Install the public package
 
-The WPF window style started from the `GlassyWindowStyle` experiment in `XAMLTemplates.Net.WPF.Themes.Glass`.
+Requirements: .NET 10, Windows 10 build 19041 or later, x64.
 
-## The WPF Shape
+```xml
+<PackageReference Include="XamlTemplates.FX.Wpf" Version="1.0.0-preview.3" />
+```
 
-Start with `GlassyWindowStyle` in `DemoApp/Themes/LiquidGlassWindow.xaml`.
+The repository selects NuGet.org through `NuGet.Config`; developers do not need
+the private SDK repository or locally built packages.
 
-The template has:
+## Attach the effect to an ordinary Window
 
-- `WindowFrame` for the captured backdrop;
-- `GlassyLayer` for the shader effect;
-- a translucent content layer;
-- caption buttons;
-- a transparent resize border.
+The important application code is in `DemoApp/MainWindow.xaml`. This excerpt
+shows the loading API; the complete Window supplies **all** custom uniforms:
 
-## Capturing the Backdrop
+```xml
+<fx:Glass.Effect>
+    <fx:GlslShaderEffect Source="Shaders/LiquidGlassSample.glsl"
+                         ReloadOnChange="True">
+        <fx:GlslParameter Name="lensDisplacement" Value="60" />
+        <fx:GlslParameter Name="blurRadius" Value="0.2" />
+    </fx:GlslShaderEffect>
+</fx:Glass.Effect>
+```
 
-`ScreenCaptureHelper` uses GDI to capture the virtual screen. `GlassyWindowBehavior` crops the capture to the current window rectangle and assigns it to an `ImageBrush`.
+Add `fx:Glass.IsEnabled="True"` to the Window and import
+`clr-namespace:XamlTemplates.FX.Wpf;assembly=XamlTemplates.FX.Wpf`.
+The demo removes the native title bar with `WindowStyle=None` and uses WPF
+`WindowChrome` for dragging and resizing. It sets `AllowsTransparency=True`
+and an initial transparent background, matching the SDK demo's transparent host.
+FX paints the captured/shaded image behind the content; merely seeing through
+the window does not confirm the effect is running. Button handlers
+only operate the window. No capture/rendering code-behind or custom Window base
+class is required.
 
-The trick is to hide the window briefly while capturing so the window does not photograph itself.
+## Ship an actual external shader
 
-## Applying the Shader
+```xml
+<XamlTemplatesFxShader Include="Shaders\LiquidGlassSample.glsl" />
+<None Update="Shaders\LiquidGlassSample.glsl"
+      CopyToPublishDirectory="PreserveNewest" />
+```
 
-`GlassyEffect` is a WPF `ShaderEffect` wrapper around the compiled `GlassyEffect.ps` file.
+These project items copy the file to the build/publish output. The NuGet runtime
+compiles and loads it; it is not a built-in preset or a bundled reference image.
 
-The behavior updates the shader's texture size, glass center, glass size, and blur intensity whenever the window changes.
+## Map the glass to the window
 
-## Keeping The Surface Focused
+The original small lens used a fixed 120 × 80 area around `u_mouse`.
+The adapted file derives the lens size from `u_resolution` and uses half that
+size as its center. It does not read `u_mouse`.
 
-The sample only styles the outer window. The content stays lightweight so the article can clearly show that the glass effect is a host surface and not a full control theme.
+The SDK supplies the captured desktop texture in `u_textures[0]`. Use the
+provided `uv` directly, without adding virtual-screen offsets or a second flip.
+The shader applies radial distortion, channel separation, blur, tint and edge
+highlights to that captured image. WPF draws the content on top.
+
+## Explain configurable parameters
+
+The file declares custom uniforms such as:
+
+```glsl
+uniform float lensDisplacement; // @fx default=60
+uniform float blurRadius;       // @fx default=0.2
+uniform float brightness;       // @fx default=0.90
+```
+
+`@fx` comments record suggested defaults for tuning tools; preview.3's runtime
+does not automatically read them. A matching `GlslParameter` in XAML supplies
+the actual value, and its `Value` can use a normal WPF binding. Keep all custom
+uniforms populated, as shown in the complete demo, rather than removing a
+parameter and expecting its comment default to be applied.
+
+Changing the output shader file demonstrates live reload. Changes to source
+files must be rebuilt/copied to that output location. Failed edits keep the last
+working shader and expose an error through `Glass.LastError`.
+
+## Distinguish the built-in effect
+
+This example deliberately loads `LiquidGlassSample.glsl`. The package's current
+built-in Liquid Glass uses a different beveled-sheet model. Do not describe the
+external sample as identical to that built-in effect.
 
 ## Caveats
 
-- This is a Windows approximation, not Apple's implementation.
-- Screen capture has a cost, so real apps should update it deliberately.
-- Remote desktop, disabled transparency effects, or restricted DWM sessions may fall back to a tinted surface.
+- Use only trusted shader files.
+- Capture and GPU availability vary by Windows session; readable fallback and
+  runtime/error status are part of the demo.
+- Manually check moving/resizing, monitor transitions, source alignment, and
+  shader edits on the target machine.
+- The sample-owned code is MIT; the NuGet binaries use their own proprietary
+  binary license, and upstream shader permissions require separate consideration.
+- This is not Apple's implementation and no Apple private APIs are used.
