@@ -1,5 +1,20 @@
 # Third-Party Notices
 
+## CHARGE footage in the demo recording
+
+The updated 35-second demo recording (`docs/XamlTemplates.Fx-Library.mp4` and
+the README's embedded copy) includes an excerpt of
+[CHARGE](https://www.youtube.com/watch?v=UXqq0ZvbOnk), copyright Blender Foundation,
+licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
+The footage is shown inside a screen recording, partially refracted through
+XamlTemplates.FX, trimmed and resized for this demonstration. The repository
+video retains the recording's audio; the separately prepared X/Reddit edits
+remove audio and add branding.
+
+Keep this attribution, source link, license link and modification notice with
+redistributed excerpts. The film is not covered by this repository's MIT license.
+No endorsement by Blender Foundation or Blender Studio is implied.
+
 ## Original tutorial and external shader adaptation
 
 The historical glass shader direction comes from AmirHossein Aghajari,

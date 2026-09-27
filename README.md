@@ -8,10 +8,16 @@ The updated demo applies the external Liquid Glass shader over a playing video,
 with live parameter controls on the right. It uses the selected-window recording
 mode included in `XamlTemplates.FX.Wpf 1.0.0-preview.5`.
 
-https://github.com/user-attachments/assets/f661b055-abdd-49b5-91ae-9f1d5c20b685
+https://github.com/user-attachments/assets/cdec3092-f7bb-43c9-94ce-fa8813653b14
 
 [Open or download the demo video](docs/XamlTemplates.Fx-Library.mp4)
-(18.5 seconds, 1080p).
+(35 seconds, 1080p; the first 00:00-00:35 of the updated recording).
+
+Background footage: [CHARGE](https://www.youtube.com/watch?v=UXqq0ZvbOnk),
+copyright Blender Foundation, licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The excerpt is captured,
+partially refracted through the demo, trimmed and resized. No endorsement is
+implied. See [the footage notice](THIRD-PARTY-NOTICES.md#charge-footage-in-the-demo-recording).
 
 ## Updated for the NuGet package
 

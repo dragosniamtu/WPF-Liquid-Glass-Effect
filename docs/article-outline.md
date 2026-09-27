@@ -16,6 +16,12 @@ clips in the README and shows the FX-backed demo with its external shader and
 live controls. Its selected-window recording mode is included in the public
 `XamlTemplates.FX.Wpf 1.0.0-preview.5` package; earlier previews did not include it.
 
+The refreshed clip shows the first 35 seconds of the new recording, including
+live refraction over [CHARGE](https://www.youtube.com/watch?v=UXqq0ZvbOnk),
+copyright Blender Foundation, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The excerpt is captured, partially refracted by the demo, trimmed and resized;
+see [the footage notice](../THIRD-PARTY-NOTICES.md#charge-footage-in-the-demo-recording).
+
 ## Credit the original tutorial
 
 The shader direction comes from AmirHossein Aghajari's
