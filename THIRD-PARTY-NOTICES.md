@@ -33,8 +33,8 @@ the tutorial-derived shader. This notice is not a claim of legal clearance.
 
 ## XamlTemplates.FX NuGet package
 
-The demo downloads `XamlTemplates.FX.Wpf` version `1.0.0-preview.3` from
-https://www.nuget.org/packages/XamlTemplates.FX.Wpf/1.0.0-preview.3.
+The demo downloads `XamlTemplates.FX.Wpf` version `1.0.0-preview.5` from
+https://www.nuget.org/packages/XamlTemplates.FX.Wpf/1.0.0-preview.5.
 
 The package's compiled components are governed by the included XamlTemplates FX
 Community Binary License, not this repository's MIT license. The package also

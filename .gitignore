@@ -40,6 +40,7 @@ TestResults/
 *.snupkg
 project.lock.json
 artifacts/
+DemoApp/LocalFxPackage.props
 
 # Rider/ReSharper
 .idea/
@@ -63,3 +64,4 @@ Desktop.ini
 # Media captures
 *.mp4
 !docs/Screen.mp4
+!docs/XamlTemplates.Fx-Library.mp4

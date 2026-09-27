@@ -21,6 +21,7 @@
     </WindowChrome.WindowChrome>
     <Window.Resources>
         <local:ShaderTuningModel x:Key="ShaderTuning" />
+        <local:RecordingCaptureModel x:Key="RecordingCapture" />
         <BooleanToVisibilityConverter x:Key="BooleanVisibility" />
         <DataTemplate x:Key="NumericSettingTemplate" DataType="{x:Type local:NumericSetting}">
             <StackPanel Margin="0,0,0,14">
@@ -73,6 +74,82 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#FF172432" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Padding" Value="8,7" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="#FFD5E3F1" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#FFB8CFE4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#FF172432" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#FF73879B" />
+            <Setter Property="MaxDropDownHeight" Value="260" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Frame" Background="White" BorderBrush="#FF73879B" BorderThickness="1" CornerRadius="4">
+                                            <TextBlock Text="▾" Foreground="#FF172432" HorizontalAlignment="Right" Margin="0,7,9,7" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Frame" Property="Background" Value="#FFD5E3F1" />
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Frame" Property="BorderBrush" Value="#FF0759B0" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Margin="8,7,28,7" IsHitTestVisible="False" VerticalAlignment="Center"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+                            <Border x:Name="FocusBorder" IsHitTestVisible="False" BorderBrush="Transparent" BorderThickness="2" CornerRadius="4" />
+                            <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True" Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}">
+                                <Border Background="White" BorderBrush="#FF73879B" BorderThickness="1"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxWidth="600" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer CanContentScroll="True" HorizontalScrollBarVisibility="Auto">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="FocusBorder" Property="BorderBrush" Value="#FF0759B0" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="CaptionButton" TargetType="Button">
             <Setter Property="Width" Value="42" />
             <Setter Property="Height" Value="30" />
@@ -104,6 +181,9 @@
             </Setter>
         </Style>
     </Window.Resources>
+    <fx:Glass.CaptureSourceWindow>
+        <Binding Path="CaptureSourceWindow" Source="{StaticResource RecordingCapture}" Mode="OneWay" />
+    </fx:Glass.CaptureSourceWindow>
     <fx:Glass.Effect>
         <fx:GlslShaderEffect Source="Shaders/LiquidGlassSample.glsl"
                              ReloadOnChange="True">
@@ -148,6 +228,19 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                           PanningMode="VerticalOnly">
                 <StackPanel Margin="0,0,8,0">
+                    <StackPanel DataContext="{StaticResource RecordingCapture}" Margin="0,0,0,22">
+                        <TextBlock Text="Screen recording" FontSize="18" FontWeight="SemiBold" />
+                        <Label Content="Source window" Target="{Binding ElementName=RecordingSource}" Padding="0" Margin="0,10,0,6" />
+                        <ComboBox x:Name="RecordingSource" ItemsSource="{Binding Windows}"
+                                  SelectedItem="{Binding SelectedWindow, Mode=TwoWay}" DisplayMemberPath="Title"
+                                  AutomationProperties.Name="Recording source window" ToolTip="Select Chrome or another background window" />
+                        <Button Content="_Refresh windows" Command="{Binding RefreshCommand}" Margin="0,8,0,10"
+                                Style="{StaticResource ResetButton}" />
+                        <CheckBox Content="Enable recording mode" IsChecked="{Binding IsRecording, Mode=TwoWay}"
+                                  IsEnabled="{Binding CanToggleRecording}" Foreground="#FF172432" />
+                        <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
+                                   AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
                     <TextBlock Text="Shader parameters" FontSize="18" FontWeight="SemiBold" />
                     <TextBlock Text="Adjust the glass live." Margin="0,6,0,12" TextWrapping="Wrap" />
                     <Button Content="_Reset defaults" Command="{Binding ResetCommand}"

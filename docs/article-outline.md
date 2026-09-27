@@ -4,13 +4,17 @@
 
 The original Blog/02 prototype demonstrated a borderless WPF window, a GDI
 desktop screenshot helper, and a compiled WPF pixel shader. This revision keeps
-the tutorial-inspired shader as a separate GLSL asset but replaces the local
-capture/rendering code with the public **XamlTemplates.FX.Wpf 1.0.0-preview.3**
-NuGet package.
+an updated version of the original tutorial-inspired shader in
+[LiquidGlassSample.glsl](../DemoApp/Shaders/LiquidGlassSample.glsl), adapted for
+the [XamlTemplates.FX.Wpf NuGet library](https://www.nuget.org/packages/XamlTemplates.FX.Wpf/).
+The library replaces the prototype's local capture/rendering code; the shader
+remains a separate, editable file supplied by this demo, not a built-in preset.
 
-The earlier implementation is available in Git history at `ded012c`. Existing
-screenshots and video show that standalone prototype; they are not new package
-integration screenshots.
+The earlier implementation is available in Git history at `ded012c`. The
+[current demo recording](../README.md#demo-video) replaces the old prototype
+clips in the README and shows the FX-backed demo with its external shader and
+live controls. Its selected-window recording mode is included in the public
+`XamlTemplates.FX.Wpf 1.0.0-preview.5` package; earlier previews did not include it.
 
 ## Credit the original tutorial
 
@@ -22,16 +26,42 @@ We adapted the sample to the FX package's shader-input contract and exposed
 parameters. The original tutorial did not use this package. Attribution does
 not establish redistribution rights; link to [the notices](../THIRD-PARTY-NOTICES.md).
 
+## What changed in the original shader file
+
+The updated [LiquidGlassSample.glsl](../DemoApp/Shaders/LiquidGlassSample.glsl)
+retains the tutorial-inspired radial distortion, Gaussian blur and color-channel
+separation while adapting the effect to the library:
+
+- The glass covers the window using `u_resolution`, replacing the fixed
+  120 × 80 lens around `u_mouse`.
+- The library provides the captured background through `u_textures[0]` and the
+  matching `uv` coordinates; the shader does not capture the screen itself.
+- Eleven custom uniforms expose corner radius, refraction strength and width,
+  lens displacement, blur, chromatic aberration, brightness, edge highlight,
+  saturation, tint color and tint strength.
+- `@fx` comments document suggested defaults. The demo supplies the actual
+  values through bindable `GlslParameter` entries, so its controls can adjust
+  the effect without editing or recompiling the shader.
+
+This is an adaptation of the original example for XamlTemplates.FX, not an
+unchanged copy or a claim that the original tutorial used the library.
+
 ## Install the public package
+
+Package page: [XamlTemplates.FX.Wpf on NuGet.org](https://www.nuget.org/packages/XamlTemplates.FX.Wpf/).
 
 Requirements: .NET 10, Windows 10 build 19041 or later, x64.
 
+Install the package version used by this demo:
+
 ```xml
-<PackageReference Include="XamlTemplates.FX.Wpf" Version="1.0.0-preview.3" />
+<PackageReference Include="XamlTemplates.FX.Wpf" Version="1.0.0-preview.5" />
 ```
 
-The repository selects NuGet.org through `NuGet.Config`; developers do not need
-the private SDK repository or locally built packages.
+The repository selects NuGet.org through `NuGet.Config`. Both custom shader
+loading and selected-window recording support come from the public package;
+developers do not need the private SDK repository or locally built packages.
+See [the README](../README.md#record-the-glass-window) for the recording setup.
 
 ## Attach the effect to an ordinary Window
 
@@ -90,7 +120,7 @@ uniform float blurRadius;       // @fx default=0.2
 uniform float brightness;       // @fx default=0.90
 ```
 
-`@fx` comments record suggested defaults for tuning tools; preview.3's runtime
+`@fx` comments record suggested defaults for tuning tools; preview.5's runtime
 does not automatically read them. A matching `GlslParameter` in XAML supplies
 the actual value, and its `Value` can use a normal WPF binding. Keep all custom
 uniforms populated, as shown in the complete demo, rather than removing a
